@@ -28,7 +28,6 @@ import net.minecraftforge.event.entity.living.LivingEvent.LivingUpdateEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.world.WorldEvent.Save;
 import net.minecraftforge.event.world.WorldEvent.Unload;
-import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.PlayerEvent;
 import net.minecraftforge.fml.common.gameevent.PlayerEvent.PlayerRespawnEvent;
@@ -38,18 +37,29 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nullable;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+@SuppressWarnings("unused")
 public class EventHandler {
+
+    private static final MethodHandle selectedIndex;
+
     @SubscribeEvent
     @SideOnly(Side.CLIENT)
     public void onOpenGui(GuiOpenEvent e) {
         if (ConfigOptions.islandSettings.defaultWorldType && e.getGui() instanceof GuiCreateWorld && Minecraft.getMinecraft().currentScreen instanceof GuiWorldSelection) {
             // Thanks YUNoMakeGoodMap :D
             GuiCreateWorld cw = (GuiCreateWorld) e.getGui();
-            ObfuscationReflectionHelper.setPrivateValue(GuiCreateWorld.class, cw, getType(), FMLLaunchHandler.isDeobfuscatedEnvironment() ? "selectedIndex" : "field_146331_K");
+            try {
+                selectedIndex.invoke(cw, getType());
+            } catch (Throwable ex) {
+                throw new RuntimeException(ex);
+            }
         }
     }
 
@@ -85,8 +95,7 @@ public class EventHandler {
 
                         if (player instanceof EntityPlayerMP) {
                             try {
-                                PlatformCommand.newPlatform((EntityPlayerMP) player,
-                                        new String[]{"create", "bypass"});
+                                PlatformCommand.newPlatform((EntityPlayerMP) player, "create", "bypass");
                             } catch (CommandException e) {
                                 player.sendMessage(new TextComponentString(e.getMessage()));
                             }
@@ -322,6 +331,16 @@ public class EventHandler {
                 event.setCanceled(true);
             }
             return null;
+        }
+    }
+
+    static {
+        try {
+            Field field = GuiCreateWorld.class.getDeclaredField(FMLLaunchHandler.isDeobfuscatedEnvironment() ? "selectedIndex" : "field_146331_K");
+            field.setAccessible(true);
+            selectedIndex = MethodHandles.publicLookup().unreflectSetter(field);
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            throw new RuntimeException(e);
         }
     }
 }
