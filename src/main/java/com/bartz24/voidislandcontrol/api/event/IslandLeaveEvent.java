@@ -1,13 +1,11 @@
 package com.bartz24.voidislandcontrol.api.event;
 
-import java.util.UUID;
-
-import javax.annotation.Nonnull;
-
 import com.bartz24.voidislandcontrol.api.IslandPos;
-
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraftforge.fml.common.eventhandler.Event;
+
+import javax.annotation.Nonnull;
+import java.util.UUID;
 
 /**
  * This event is fired after a player leaves an island
@@ -15,26 +13,22 @@ import net.minecraftforge.fml.common.eventhandler.Event;
  * This event is fired on MinecraftForge#EVENT_BUS
  * The EntityPlayer is the player leaving, the IslandPos is the island being left
  */
-public class IslandLeaveEvent extends Event
-{
-	private final IslandPos islandPosition;
-	private final UUID playerUUID;
-	
-	public IslandLeaveEvent(@Nonnull EntityPlayer entityPlayer, IslandPos isPosition)
-    {
-    	playerUUID = entityPlayer.getUniqueID();
-    	islandPosition = isPosition;
+public class IslandLeaveEvent extends Event {
+    private final IslandPos islandPosition;
+    private final UUID playerUUID;
+
+    public IslandLeaveEvent(@Nonnull EntityPlayer entityPlayer, IslandPos isPosition) {
+        playerUUID = entityPlayer.getUniqueID();
+        islandPosition = isPosition;
     }
-	
-	@Nonnull
-    public UUID getPlayerUUID()
-    {
+
+    @Nonnull
+    public UUID getPlayerUUID() {
         return playerUUID;
     }
-	
-	@Nonnull
-    public IslandPos getIslandPosition()
-    {
+
+    @Nonnull
+    public IslandPos getIslandPosition() {
         return islandPosition;
     }
 }

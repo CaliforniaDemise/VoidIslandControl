@@ -3,7 +3,6 @@ package com.bartz24.voidislandcontrol;
 import com.bartz24.voidislandcontrol.api.IslandManager;
 import com.bartz24.voidislandcontrol.api.IslandPos;
 import com.bartz24.voidislandcontrol.config.ConfigOptions;
-
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.world.storage.WorldSavedData;

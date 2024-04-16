@@ -2,7 +2,6 @@ package com.bartz24.voidislandcontrol.world;
 
 import com.bartz24.voidislandcontrol.config.ConfigOptions;
 import com.bartz24.voidislandcontrol.config.ConfigOptions.WorldGenSettings.WorldGenType;
-
 import net.minecraft.world.World;
 import net.minecraft.world.WorldType;
 import net.minecraft.world.biome.Biome;
@@ -57,17 +56,14 @@ public class WorldTypeVoid extends WorldType {
     }
 
     @SideOnly(Side.CLIENT)
-    public void onCustomizeButton(net.minecraft.client.Minecraft mc, net.minecraft.client.gui.GuiCreateWorld guiCreateWorld)
-    {
-        if(ConfigOptions.worldGenSettings.worldGenType == WorldGenType.CUSTOMIZED)
-        {
+    public void onCustomizeButton(net.minecraft.client.Minecraft mc, net.minecraft.client.gui.GuiCreateWorld guiCreateWorld) {
+        if (ConfigOptions.worldGenSettings.worldGenType == WorldGenType.CUSTOMIZED) {
             mc.displayGuiScreen(new net.minecraft.client.gui.GuiCustomizeWorldScreen(guiCreateWorld, guiCreateWorld.chunkProviderSettingsJson));
-        }
-        else if(ConfigOptions.worldGenSettings.worldGenType == WorldGenType.WORLDTYPE && overridenWorldType != null)
+        } else if (ConfigOptions.worldGenSettings.worldGenType == WorldGenType.WORLDTYPE && overridenWorldType != null)
             overridenWorldType.onCustomizeButton(mc, guiCreateWorld);
     }
-    public boolean isCustomizable()
-    {
+
+    public boolean isCustomizable() {
         return ConfigOptions.worldGenSettings.worldGenType == WorldGenType.CUSTOMIZED || (ConfigOptions.worldGenSettings.worldGenType == WorldGenType.CUSTOMIZED && overridenWorldType != null && overridenWorldType.isCustomizable());
     }
 
@@ -75,7 +71,7 @@ public class WorldTypeVoid extends WorldType {
     public IChunkGenerator getChunkGenerator(World world, String generatorOptions) {
         if (overridenWorldType != null)
             return overridenWorldType.getChunkGenerator(world, generatorOptions);
-        if (ConfigOptions.worldGenSettings.worldGenType != WorldGenType.OVERWORLD && ConfigOptions.worldGenSettings.worldGenType != WorldGenType.CUSTOMIZED ) {
+        if (ConfigOptions.worldGenSettings.worldGenType != WorldGenType.OVERWORLD && ConfigOptions.worldGenSettings.worldGenType != WorldGenType.CUSTOMIZED) {
             String genSettings = "3;1*minecraft:air";
             if (ConfigOptions.worldGenSettings.worldGenType == WorldGenType.SUPERFLAT)
                 genSettings = ConfigOptions.worldGenSettings.worldGenSpecialParameters;
@@ -86,8 +82,7 @@ public class WorldTypeVoid extends WorldType {
             return new ChunkGeneratorOverworld(world, world.getSeed(), true, generatorOptions);
     }
 
-    public boolean handleSlimeSpawnReduction(java.util.Random random, World world)
-    {
+    public boolean handleSlimeSpawnReduction(java.util.Random random, World world) {
         if (overridenWorldType != null)
             return overridenWorldType.handleSlimeSpawnReduction(random, world);
         return super.handleSlimeSpawnReduction(random, world);

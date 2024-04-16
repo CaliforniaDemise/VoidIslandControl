@@ -3,7 +3,6 @@ package com.bartz24.voidislandcontrol;
 import com.bartz24.voidislandcontrol.api.IslandManager;
 import com.bartz24.voidislandcontrol.config.ConfigOptions;
 import com.bartz24.voidislandcontrol.world.WorldTypeVoid;
-
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.text.TextComponentString;

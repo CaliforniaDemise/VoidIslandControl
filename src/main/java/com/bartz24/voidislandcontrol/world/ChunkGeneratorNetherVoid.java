@@ -1,13 +1,7 @@
 package com.bartz24.voidislandcontrol.world;
 
-import java.util.List;
-
 import com.bartz24.voidislandcontrol.config.ConfigOptions;
-
-import net.minecraft.entity.EnumCreatureType;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import net.minecraft.world.biome.Biome;
 import net.minecraft.world.chunk.ChunkPrimer;
 import net.minecraft.world.gen.ChunkGeneratorHell;
 

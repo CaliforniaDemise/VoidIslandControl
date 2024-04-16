@@ -8,7 +8,9 @@ import net.minecraft.world.WorldServer;
 public class VICTeleporter extends Teleporter {
     private final WorldServer worldServer;
 
-    private double x, y, z;
+    private final double x;
+    private final double y;
+    private final double z;
 
 
     public VICTeleporter(WorldServer server, double x, double y, double z) {

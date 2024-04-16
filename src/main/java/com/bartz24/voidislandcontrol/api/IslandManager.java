@@ -144,7 +144,8 @@ public class IslandManager {
                 Pair<Integer, ItemStack> pair = fromString(player, stackString);
 
                 if (pair.getLeft() >= 0 && !pair.getRight().isEmpty()) {
-                    if (pair.getLeft() < invSize) player.inventory.setInventorySlotContents(pair.getLeft(), pair.getRight());
+                    if (pair.getLeft() < invSize)
+                        player.inventory.setInventorySlotContents(pair.getLeft(), pair.getRight());
                     else if (Loader.isModLoaded(References.BAUBLES)) {
                         IBaublesItemHandler baubles = BaublesApi.getBaublesHandler(player);
                         baubles.setStackInSlot(pair.getLeft() - invSize + 1, pair.getRight());

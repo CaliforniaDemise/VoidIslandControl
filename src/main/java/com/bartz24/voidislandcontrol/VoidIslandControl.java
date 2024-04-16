@@ -1,11 +1,8 @@
 package com.bartz24.voidislandcontrol;
 
-import org.apache.logging.log4j.Logger;
-
 import com.bartz24.voidislandcontrol.api.IslandManager;
 import com.bartz24.voidislandcontrol.config.ConfigOptions;
 import com.bartz24.voidislandcontrol.proxy.CommonProxy;
-
 import net.minecraft.world.World;
 import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fml.common.FMLCommonHandler;
@@ -16,10 +13,11 @@ import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLServerStartingEvent;
 import net.minecraftforge.fml.relauncher.Side;
+import org.apache.logging.log4j.Logger;
 
-@Mod(modid = References.ModID, name = References.ModName, useMetadata = true)
+@Mod(modid = References.ModID, name = "Void Island Control", useMetadata = true)
 public class VoidIslandControl {
-	@SidedProxy(clientSide = "com.bartz24.voidislandcontrol.proxy.ClientProxy", serverSide = "com.bartz24.voidislandcontrol.proxy.ServerProxy")
+	@SidedProxy(clientSide = "com.bartz24.voidislandcontrol.proxy.ClientProxy", serverSide = "com.bartz24.voidislandcontrol.proxy.CommonProxy")
 	public static CommonProxy proxy;
 
 	@Mod.Instance

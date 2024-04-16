@@ -1,13 +1,11 @@
 package com.bartz24.voidislandcontrol.api.event;
 
-import java.util.UUID;
-
-import javax.annotation.Nonnull;
-
 import com.bartz24.voidislandcontrol.api.IslandPos;
-
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraftforge.fml.common.eventhandler.Event;
+
+import javax.annotation.Nonnull;
+import java.util.UUID;
 
 /**
  * This event is fired after a player is invited to an island
@@ -15,26 +13,22 @@ import net.minecraftforge.fml.common.eventhandler.Event;
  * This event is fired on MinecraftForge#EVENT_BUS
  * The EntityPlayer is the player being invited, the IslandPos is the island being sent to
  */
-public class IslandInviteEvent extends Event
-{
-	private final IslandPos islandPosition;
-	private final UUID playerUUID;
-	
-	public IslandInviteEvent(@Nonnull EntityPlayer entityPlayer, IslandPos isPosition)
-    {
-    	playerUUID = entityPlayer.getUniqueID();
-    	islandPosition = isPosition;
+public class IslandInviteEvent extends Event {
+    private final IslandPos islandPosition;
+    private final UUID playerUUID;
+
+    public IslandInviteEvent(@Nonnull EntityPlayer entityPlayer, IslandPos isPosition) {
+        playerUUID = entityPlayer.getUniqueID();
+        islandPosition = isPosition;
     }
-	
-	@Nonnull
-    public UUID getPlayerUUID()
-    {
+
+    @Nonnull
+    public UUID getPlayerUUID() {
         return playerUUID;
     }
-	
-	@Nonnull
-    public IslandPos getIslandPosition()
-    {
+
+    @Nonnull
+    public IslandPos getIslandPosition() {
         return islandPosition;
     }
 }

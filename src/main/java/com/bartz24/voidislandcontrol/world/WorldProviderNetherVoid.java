@@ -6,11 +6,11 @@ import net.minecraft.world.gen.IChunkGenerator;
 
 public class WorldProviderNetherVoid extends WorldProviderHell {
 
-	@Override
-	public IChunkGenerator createChunkGenerator() {
-		if (getDimension() == -1 && ConfigOptions.worldGenSettings.netherVoid)
-			return new ChunkGeneratorNetherVoid(world, world.getSeed());
-		return super.createChunkGenerator();
-	}
+    @Override
+    public IChunkGenerator createChunkGenerator() {
+        if (getDimension() == -1 && ConfigOptions.worldGenSettings.netherVoid)
+            return new ChunkGeneratorNetherVoid(world, world.getSeed());
+        return super.createChunkGenerator();
+    }
 
 }
