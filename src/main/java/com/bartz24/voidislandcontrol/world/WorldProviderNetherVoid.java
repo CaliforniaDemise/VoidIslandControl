@@ -11,7 +11,7 @@ public class WorldProviderNetherVoid extends WorldProviderHell {
     @Nonnull
     @Override
     public IChunkGenerator createChunkGenerator() {
-        if (getDimension() == -1 && ConfigOptions.worldGenSettings.netherVoid)
+        if (getDimension() == -1 && world.getWorldType() instanceof WorldTypeVoid)
             return new ChunkGeneratorNetherVoid(world, world.getSeed());
         return super.createChunkGenerator();
     }

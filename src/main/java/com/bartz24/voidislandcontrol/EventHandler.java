@@ -57,7 +57,7 @@ public class EventHandler {
             GuiCreateWorld cw = (GuiCreateWorld) e.getGui();
             try {
                 assert selectedIndex != null;
-                selectedIndex.invoke(cw, CommonProxy.worldTypeVoid);
+                selectedIndex.invoke(cw, CommonProxy.worldTypeVoid.getId());
             }
             catch (Throwable ex) { throw new RuntimeException(ex); }
         }
@@ -266,7 +266,7 @@ public class EventHandler {
         EntityPlayer player = event.getEntityPlayer();
         World world = player.getEntityWorld();
 
-        if (!ConfigOptions.islandSettings.spawnProtection || Math.abs(player.posX) > ConfigOptions.islandSettings.protectionBuildRange || Math.abs(player.posZ) > ConfigOptions.islandSettings.protectionBuildRange) {
+        if (!(world.getWorldType() instanceof WorldTypeVoid) || !ConfigOptions.islandSettings.spawnProtection || Math.abs(player.posX) > ConfigOptions.islandSettings.protectionBuildRange || Math.abs(player.posZ) > ConfigOptions.islandSettings.protectionBuildRange) {
             return event;
         }
         else {
