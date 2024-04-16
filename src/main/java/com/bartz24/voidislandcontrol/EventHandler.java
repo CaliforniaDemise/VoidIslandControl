@@ -4,6 +4,7 @@ import com.bartz24.voidislandcontrol.api.IslandManager;
 import com.bartz24.voidislandcontrol.api.IslandPos;
 import com.bartz24.voidislandcontrol.config.ConfigOptions;
 import com.bartz24.voidislandcontrol.config.ConfigOptions.CommandSettings.CommandBlockType;
+import com.bartz24.voidislandcontrol.proxy.CommonProxy;
 import com.bartz24.voidislandcontrol.world.WorldTypeVoid;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockCommandBlock;
@@ -22,7 +23,6 @@ import net.minecraft.util.text.TextComponentString;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.GameType;
 import net.minecraft.world.World;
-import net.minecraft.world.WorldType;
 import net.minecraft.world.border.WorldBorder;
 import net.minecraftforge.client.event.GuiOpenEvent;
 import net.minecraftforge.event.entity.living.LivingEvent.LivingUpdateEvent;
@@ -56,18 +56,11 @@ public class EventHandler {
             // Thanks YUNoMakeGoodMap :D
             GuiCreateWorld cw = (GuiCreateWorld) e.getGui();
             try {
-                selectedIndex.invoke(cw, getType());
+                assert selectedIndex != null;
+                selectedIndex.invoke(cw, CommonProxy.worldTypeVoid);
             }
             catch (Throwable ex) { throw new RuntimeException(ex); }
         }
-    }
-
-    private int getType() {
-        for (int i = 0; i < WorldType.WORLD_TYPES.length; i++) {
-            if (WorldType.WORLD_TYPES[i] instanceof WorldTypeVoid) return i;
-        }
-
-        return 0;
     }
 
     @SubscribeEvent
@@ -283,11 +276,16 @@ public class EventHandler {
     }
 
     static {
-        try {
-            Field field = GuiCreateWorld.class.getDeclaredField(FMLLaunchHandler.isDeobfuscatedEnvironment() ? "selectedIndex" : "field_146331_K");
-            field.setAccessible(true);
-            selectedIndex = MethodHandles.publicLookup().unreflectSetter(field);
+        if (FMLLaunchHandler.side() == Side.SERVER) {
+            selectedIndex = null;
         }
-        catch (NoSuchFieldException | IllegalAccessException e) { throw new RuntimeException(e); }
+        else {
+            try {
+                Field field = GuiCreateWorld.class.getDeclaredField(FMLLaunchHandler.isDeobfuscatedEnvironment() ? "selectedIndex" : "field_146331_K");
+                field.setAccessible(true);
+                selectedIndex = MethodHandles.publicLookup().unreflectSetter(field);
+            }
+            catch (NoSuchFieldException | IllegalAccessException e) { throw new RuntimeException(e); }
+        }
     }
 }

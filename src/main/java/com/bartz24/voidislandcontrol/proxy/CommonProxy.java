@@ -13,9 +13,12 @@ import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 
 public class CommonProxy {
+
+    public static WorldTypeVoid worldTypeVoid;
+
     public void preInit(FMLPreInitializationEvent e) {
         StructureLoader.preInit(e);
-        new WorldTypeVoid();
+        worldTypeVoid = new WorldTypeVoid();
     }
 
     public void init(FMLInitializationEvent e) {
