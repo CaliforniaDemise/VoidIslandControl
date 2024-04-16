@@ -8,22 +8,21 @@ import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.SidedProxy;
-import net.minecraftforge.fml.common.event.FMLInitializationEvent;
-import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
-import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
-import net.minecraftforge.fml.common.event.FMLServerStartingEvent;
+import net.minecraftforge.fml.common.event.*;
 import net.minecraftforge.fml.relauncher.Side;
+import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 @Mod(modid = References.ModID, name = "Void Island Control", useMetadata = true)
 public class VoidIslandControl {
+
 	@SidedProxy(clientSide = "com.bartz24.voidislandcontrol.proxy.ClientProxy", serverSide = "com.bartz24.voidislandcontrol.proxy.CommonProxy")
 	public static CommonProxy proxy;
 
 	@Mod.Instance
 	public static VoidIslandControl instance;
 
-	public static Logger logger;
+	public static final Logger logger = LogManager.getLogger(References.ModID);
 
 	@Mod.EventHandler
 	public void serverLoading(FMLServerStartingEvent event) {
@@ -40,8 +39,7 @@ public class VoidIslandControl {
 			IslandManager.initialIslandDistance = ConfigOptions.islandSettings.islandDistance;
 			World world = event.getServer().getEntityWorld();
 			if (!world.isRemote) {
-				VoidIslandControlSaveData worldData = (VoidIslandControlSaveData) world
-						.loadData(VoidIslandControlSaveData.class, VoidIslandControlSaveData.dataName);
+				VoidIslandControlSaveData worldData = (VoidIslandControlSaveData) world.loadData(VoidIslandControlSaveData.class, VoidIslandControlSaveData.dataName);
 
 				if (worldData == null) {
 					worldData = new VoidIslandControlSaveData(VoidIslandControlSaveData.dataName);
@@ -55,7 +53,6 @@ public class VoidIslandControl {
 
 	@Mod.EventHandler
 	public void preInit(FMLPreInitializationEvent event) {
-		logger = event.getModLog();
 		proxy.preInit(event);
 	}
 

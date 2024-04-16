@@ -1,6 +1,7 @@
 package com.bartz24.voidislandcontrol.config;
 
 import com.bartz24.voidislandcontrol.References;
+import net.minecraft.block.BlockPlanks;
 import net.minecraft.util.EnumFacing;
 import net.minecraftforge.common.config.Config;
 import net.minecraftforge.common.config.ConfigManager;
@@ -28,6 +29,7 @@ public class ConfigOptions {
     }
 
     @SubscribeEvent
+    @SuppressWarnings("unused")
     public void onConfigChanged(ConfigChangedEvent.OnConfigChangedEvent event) {
         if (event.getModID().equals(References.ModID)) {
             ConfigManager.sync(References.ModID, Config.Type.INSTANCE);
@@ -138,7 +140,7 @@ public class ConfigOptions {
             BEDROCK, SECONDARYBLOCK
         }
 
-        public class GrassIslandSettings {
+        public static class GrassIslandSettings {
             @Config.Comment("Allow grass island to be used")
             public boolean enableGrassIsland = true;
             @Config.Comment("Spawn a tree")
@@ -147,7 +149,7 @@ public class ConfigOptions {
             public GrassBlockType grassBlockType = GrassBlockType.GRASS;
         }
 
-        public class SandIslandSettings {
+        public static class SandIslandSettings {
             @Config.Comment("Allow sand island to be used")
             public boolean enableSandIsland = true;
             @Config.Comment("Spawn a cactus")
@@ -156,7 +158,7 @@ public class ConfigOptions {
             public SandBlockType sandBlockType = SandBlockType.RED;
         }
 
-        public class SnowIslandSettings {
+        public static class SnowIslandSettings {
 
             @Config.Comment("Allow snow island to be used")
             public boolean enableSnowIsland = true;
@@ -166,7 +168,7 @@ public class ConfigOptions {
             public boolean spawnIgloo = false;
         }
 
-        public class WoodIslandSettings {
+        public static class WoodIslandSettings {
             @Config.Comment("Allow wood island to be used")
             public boolean enableWoodIsland = true;
             @Config.Comment("Spawn water")
@@ -174,11 +176,13 @@ public class ConfigOptions {
             @Config.Comment("Spawn string")
             public boolean spawnString = true;
             @Config.Comment("Type of wood")
-            public WoodBlockType woodBlockType = WoodBlockType.DARKOAK;
+            private WoodBlockType woodType = WoodBlockType.DARKOAK;
+
+            @Config.Ignore
+            public BlockPlanks.EnumType woodBlockType = BlockPlanks.EnumType.byMetadata(woodType.ordinal());
         }
 
-        public class GoGSettings {
-
+        public static class GoGSettings {
             @Config.Comment("Allow garden of glass island to be used")
             public boolean enableGoGIsland = true;
         }
@@ -211,7 +215,7 @@ public class ConfigOptions {
             NONE, IMPULSE, REPEATING, CHAIN
         }
 
-        public class CommandBlockPos {
+        public static class CommandBlockPos {
 
             @Config.Comment("The x coordinate (Offset from the center block above the bedrock)")
             public int x = 0;

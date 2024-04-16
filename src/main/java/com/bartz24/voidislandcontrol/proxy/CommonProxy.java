@@ -21,8 +21,7 @@ public class CommonProxy {
     public void init(FMLInitializationEvent e) {
         MinecraftForge.EVENT_BUS.register(new EventHandler());
         MinecraftForge.EVENT_BUS.register(new ConfigOptions());
-        if (IslandRegistry.isValidGoG())
-            MinecraftForge.EVENT_BUS.register(new GoGSupport());
+        if (IslandRegistry.isValidGoG()) MinecraftForge.EVENT_BUS.register(new GoGSupport());
 
         IslandRegistry.initIslands();
         WorldOverride.registerWorldProviders();

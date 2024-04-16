@@ -12,7 +12,9 @@ import java.util.UUID;
  * This event is fired on MinecraftForge#EVENT_BUS
  * The EntityPlayer is the player going to spawn
  */
+@SuppressWarnings("unused")
 public class IslandSpawnEvent extends Event {
+
     private final UUID playerUUID;
 
     public IslandSpawnEvent(@Nonnull EntityPlayer entityPlayer) {

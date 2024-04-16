@@ -13,7 +13,9 @@ import java.util.UUID;
  * This event is fired on MinecraftForge#EVENT_BUS
  * The EntityPlayer is the player leaving, the IslandPos is the island being left
  */
+@SuppressWarnings("unused")
 public class IslandLeaveEvent extends Event {
+
     private final IslandPos islandPosition;
     private final UUID playerUUID;
 

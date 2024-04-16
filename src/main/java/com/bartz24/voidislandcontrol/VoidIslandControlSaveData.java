@@ -10,94 +10,79 @@ import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.relauncher.Side;
 
-public class VoidIslandControlSaveData extends WorldSavedData
-{
-	private static VoidIslandControlSaveData INSTANCE;
-	public static final String dataName = "VICData";
+public class VoidIslandControlSaveData extends WorldSavedData {
 
-	public VoidIslandControlSaveData(String s)
-	{
-		super(s);
-	}
+    public static final String dataName = "VICData";
+    private static VoidIslandControlSaveData INSTANCE;
 
-	@Override
-	public void readFromNBT(NBTTagCompound nbt)
-	{
-		IslandManager.CurrentIslandsList.clear();
-		IslandManager.spawnedPlayers.clear();
-		IslandManager.worldOneChunk = false;
-		IslandManager.initialIslandDistance = ConfigOptions.islandSettings.islandDistance;
-		NBTTagList list = nbt.getTagList("Positions",
-				Constants.NBT.TAG_COMPOUND);
-		for (int i = 0; i < list.tagCount(); ++i)
-		{
-			NBTTagCompound stackTag = list.getCompoundTagAt(i);
+    public VoidIslandControlSaveData(String s) {
+        super(s);
+    }
 
-			IslandPos pos = new IslandPos(0, 0);
-			pos.readFromNBT(stackTag);
-			IslandManager.CurrentIslandsList.add(pos);
-		}
+    public static void setDirty(int dimension) {
+        if (FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER
+                && INSTANCE != null)
+            INSTANCE.markDirty();
+    }
 
-		list = nbt.getTagList("SpawnedPlayers", Constants.NBT.TAG_COMPOUND);
-		for (int i = 0; i < list.tagCount(); ++i)
-		{
-			NBTTagCompound stackTag = list.getCompoundTagAt(i);
+    public static void setInstance(int dimension, VoidIslandControlSaveData in) {
+        if (FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER)
+            INSTANCE = in;
+    }
 
-			String name = stackTag.getString("name");
+    @Override
+    public void readFromNBT(NBTTagCompound nbt) {
+        IslandManager.CurrentIslandsList.clear();
+        IslandManager.spawnedPlayers.clear();
+        IslandManager.worldOneChunk = false;
+        IslandManager.initialIslandDistance = ConfigOptions.islandSettings.islandDistance;
 
-			IslandManager.spawnedPlayers.add(name);
-		}
-		if (nbt.hasKey("oneChunkWorld"))
-			IslandManager.worldOneChunk = nbt.getBoolean("oneChunkWorld");
-		if (nbt.hasKey("initialDist"))
-			IslandManager.initialIslandDistance = nbt.getInteger("initialDist");
-		if (nbt.hasKey("worldLoaded"))
-			IslandManager.worldLoaded = nbt.getBoolean("worldLoaded");
-	}
+        NBTTagList list = nbt.getTagList("Positions", Constants.NBT.TAG_COMPOUND);
 
-	@Override
-	public NBTTagCompound writeToNBT(NBTTagCompound nbt)
-	{
-		NBTTagList list = new NBTTagList();
-		for (int i = 0; i < IslandManager.CurrentIslandsList.size(); i++)
-		{
-			NBTTagCompound stackTag = new NBTTagCompound();
+        for (int i = 0; i < list.tagCount(); ++i) {
+            NBTTagCompound stackTag = list.getCompoundTagAt(i);
+            IslandPos pos = new IslandPos(0, 0);
+            pos.readFromNBT(stackTag);
+            IslandManager.CurrentIslandsList.add(pos);
+        }
 
-			IslandManager.CurrentIslandsList.get(i).writeToNBT(stackTag);
+        list = nbt.getTagList("SpawnedPlayers", Constants.NBT.TAG_COMPOUND);
+        for (int i = 0; i < list.tagCount(); ++i) {
+            NBTTagCompound stackTag = list.getCompoundTagAt(i);
+            String name = stackTag.getString("name");
+            IslandManager.spawnedPlayers.add(name);
+        }
 
-			list.appendTag(stackTag);
-		}
-		nbt.setTag("Positions", list);
-		NBTTagList list2 = new NBTTagList();
-		for (int i = 0; i < IslandManager.spawnedPlayers.size(); i++)
-		{
-			NBTTagCompound stackTag = new NBTTagCompound();
+        if (nbt.hasKey("oneChunkWorld")) IslandManager.worldOneChunk = nbt.getBoolean("oneChunkWorld");
+        if (nbt.hasKey("initialDist")) IslandManager.initialIslandDistance = nbt.getInteger("initialDist");
+        if (nbt.hasKey("worldLoaded")) IslandManager.worldLoaded = nbt.getBoolean("worldLoaded");
+    }
 
-			stackTag.setString("name", IslandManager.spawnedPlayers.get(i));
+    @Override
+    public NBTTagCompound writeToNBT(NBTTagCompound nbt) {
+        NBTTagList list = new NBTTagList();
 
-			list2.appendTag(stackTag);
-		}
-		nbt.setTag("SpawnedPlayers", list2);
+        for (int i = 0; i < IslandManager.CurrentIslandsList.size(); i++) {
+            NBTTagCompound stackTag = new NBTTagCompound();
+            IslandManager.CurrentIslandsList.get(i).writeToNBT(stackTag);
+            list.appendTag(stackTag);
+        }
 
-		if (IslandManager.worldOneChunk)
-			nbt.setBoolean("oneChunkWorld", true);
+        nbt.setTag("Positions", list);
+        NBTTagList list2 = new NBTTagList();
 
-		nbt.setInteger("initialDist", IslandManager.initialIslandDistance);
-		nbt.setBoolean("worldLoaded", IslandManager.worldLoaded);
+        for (int i = 0; i < IslandManager.spawnedPlayers.size(); i++) {
+            NBTTagCompound stackTag = new NBTTagCompound();
+            stackTag.setString("name", IslandManager.spawnedPlayers.get(i));
+            list2.appendTag(stackTag);
+        }
 
-		return nbt;
-	}
+        nbt.setTag("SpawnedPlayers", list2);
 
-	public static void setDirty(int dimension)
-	{
-		if (FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER
-				&& INSTANCE != null)
-			INSTANCE.markDirty();
-	}
+        if (IslandManager.worldOneChunk) nbt.setBoolean("oneChunkWorld", true);
+        nbt.setInteger("initialDist", IslandManager.initialIslandDistance);
+        nbt.setBoolean("worldLoaded", IslandManager.worldLoaded);
 
-	public static void setInstance(int dimension, VoidIslandControlSaveData in)
-	{
-		if (FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER)
-			INSTANCE = in;
-	}
+        return nbt;
+    }
 }

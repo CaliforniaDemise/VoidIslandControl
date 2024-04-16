@@ -9,6 +9,7 @@ import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommand;
 import net.minecraft.command.ICommandSender;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.Blocks;
@@ -27,8 +28,10 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 public class PlatformCommand extends CommandBase implements ICommand {
+
     private static List<String> aliases;
 
     public PlatformCommand() {
@@ -88,7 +91,10 @@ public class PlatformCommand extends CommandBase implements ICommand {
     @Override
     public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException {
         World world = sender.getEntityWorld();
-        EntityPlayerMP player = (EntityPlayerMP) world.getPlayerEntityByName(sender.getCommandSenderEntity().getName());
+        Entity entity = sender.getCommandSenderEntity();
+        if (entity == null) return;
+
+        EntityPlayerMP player = (EntityPlayerMP) entity;
 
         if (!(world.getWorldInfo().getTerrainType() instanceof WorldTypeVoid)) {
             player.sendMessage(new TextComponentString("You are not in a void world type."));
@@ -333,7 +339,7 @@ public class PlatformCommand extends CommandBase implements ICommand {
                 + " : Visit another player's island in spectator mode."));
     }
 
-    public static void newPlatform(EntityPlayerMP player, String[] args) throws CommandException {
+    public static void newPlatform(EntityPlayerMP player, String... args) throws CommandException {
         if ((args.length == 1 || (args.length > 1 && !args[1].equals("bypass"))) && !ConfigOptions.islandSettings.allowIslandCreation) {
             player.sendMessage(new TextComponentString(TextFormatting.RED + "Not allowed to create islands!"));
             return;
@@ -450,10 +456,9 @@ public class PlatformCommand extends CommandBase implements ICommand {
 
         position = IslandManager.getPlayerIsland(player.getGameProfile().getId());
 
-        for (String name : position.getPlayerUUIDs()) {
-            EntityPlayerMP p = (EntityPlayerMP) world.getPlayerEntityByName(name);
-            if (p != null)
-                p.sendMessage(new TextComponentString(player.getName() + " joined your island!"));
+        for (UUID name : position.getPlayerUUIDs()) {
+            EntityPlayerMP p = (EntityPlayerMP) world.getPlayerEntityByUUID(name);
+            if (p != null) p.sendMessage(new TextComponentString(player.getName() + " joined your island!"));
         }
 
         if (IslandManager.hasVisitLoc(player)) {

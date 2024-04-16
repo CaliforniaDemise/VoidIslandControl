@@ -22,8 +22,10 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 public class AdminCommand extends CommandBase implements ICommand {
+
     private static List<String> aliases;
 
     public AdminCommand() {
@@ -145,10 +147,9 @@ public class AdminCommand extends CommandBase implements ICommand {
 
         isPos.getPlayerUUIDs().set(0, isPos.getPlayerUUIDs().remove(isPos.getPlayerUUIDs().indexOf(player2.getGameProfile().getId())));
 
-        for (String name : isPos.getPlayerUUIDs()) {
-            EntityPlayerMP p = (EntityPlayerMP) player.world.getPlayerEntityByName(name);
-            if (p != null)
-                p.sendMessage(new TextComponentString(player2.getName() + " is now the owner of the island!"));
+        for (UUID name : isPos.getPlayerUUIDs()) {
+            EntityPlayerMP p = (EntityPlayerMP) player.world.getPlayerEntityByUUID(name);
+            if (p != null) p.sendMessage(new TextComponentString(player2.getName() + " is now the owner of the island!"));
         }
         player.sendMessage(new TextComponentString(player2.getName() + " is now the owner of the island!"));
     }
@@ -189,10 +190,9 @@ public class AdminCommand extends CommandBase implements ICommand {
 
         IslandManager.addPlayer(player2.getGameProfile().getId(), position);
 
-        for (String name : position.getPlayerUUIDs()) {
-            EntityPlayerMP p = (EntityPlayerMP) player.world.getPlayerEntityByName(name);
-            if (p != null)
-                p.sendMessage(new TextComponentString(player2.getName() + " joined your island!"));
+        for (UUID name : position.getPlayerUUIDs()) {
+            EntityPlayerMP p = (EntityPlayerMP) player.world.getPlayerEntityByUUID(name);
+            if (p != null) p.sendMessage(new TextComponentString(player2.getName() + " joined your island!"));
         }
 
         if (IslandManager.hasVisitLoc(player2)) {
@@ -224,8 +224,8 @@ public class AdminCommand extends CommandBase implements ICommand {
         player.sendMessage(new TextComponentString("X: " + position.getX() + ", Y: " + position.getY()));
         player.sendMessage(new TextComponentString("Player UUIDs: "));
 
-        for (String s : position.getPlayerUUIDs()) {
-            player.sendMessage(new TextComponentString(s));
+        for (UUID uuid : position.getPlayerUUIDs()) {
+            player.sendMessage(new TextComponentString(uuid.toString()));
         }
     }
 
@@ -234,16 +234,15 @@ public class AdminCommand extends CommandBase implements ICommand {
 
         int index = 0;
         for (IslandPos position : IslandManager.CurrentIslandsList) {
-            if (position == null) {
-                continue;
-            }
+            if (position == null) continue;
             player.sendMessage(new TextComponentString("Island " + index));
             player.sendMessage(new TextComponentString("X: " + position.getX() + ", Y: " + position.getY()));
             player.sendMessage(new TextComponentString("Player UUIDs: "));
 
-            for (String s : position.getPlayerUUIDs()) {
-                player.sendMessage(new TextComponentString(s));
+            for (UUID uuid : position.getPlayerUUIDs()) {
+                player.sendMessage(new TextComponentString(uuid.toString()));
             }
+
             index++;
         }
     }

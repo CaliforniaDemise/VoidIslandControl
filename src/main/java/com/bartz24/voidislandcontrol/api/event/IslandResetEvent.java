@@ -13,7 +13,9 @@ import java.util.UUID;
  * This event is fired on MinecraftForge#EVENT_BUS
  * The EntityPlayer is the player reseting, the IslandPos is the island being reset
  */
+@SuppressWarnings("unused")
 public class IslandResetEvent extends Event {
+
     private final IslandPos islandPosition;
     private final UUID playerUUID;
 

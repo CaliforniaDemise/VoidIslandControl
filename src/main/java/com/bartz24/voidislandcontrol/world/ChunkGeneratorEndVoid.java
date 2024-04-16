@@ -7,7 +7,10 @@ import net.minecraft.world.World;
 import net.minecraft.world.chunk.ChunkPrimer;
 import net.minecraft.world.gen.ChunkGeneratorEnd;
 
+import javax.annotation.Nonnull;
+
 public class ChunkGeneratorEndVoid extends ChunkGeneratorEnd {
+
     World world;
 
     public ChunkGeneratorEndVoid(World par1World, long par2) {
@@ -17,12 +20,11 @@ public class ChunkGeneratorEndVoid extends ChunkGeneratorEnd {
     }
 
     @Override
-    public void setBlocksInChunk(int x, int z, ChunkPrimer primer) {
-        if (x == 0 && z == 0)
-            primer.setBlockState(0, 60, 0, Blocks.BEDROCK.getDefaultState());
+    public void setBlocksInChunk(int x, int z, @Nonnull ChunkPrimer primer) {
+        if (x == 0 && z == 0) primer.setBlockState(0, 60, 0, Blocks.BEDROCK.getDefaultState());
     }
 
     @Override
-    public void buildSurfaces(ChunkPrimer primer) {
+    public void buildSurfaces(@Nonnull ChunkPrimer primer) {
     }
 }

@@ -5,10 +5,13 @@ import net.minecraft.client.gui.toasts.IToast;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.util.text.ITextComponent;
 
+import javax.annotation.Nonnull;
+
 public class IslandToast implements IToast {
-	private IslandToast.Type type;
-	private String title;
-	private String subtitle;
+
+	private final IslandToast.Type type;
+	private final String title;
+	private final String subtitle;
 	private IToast.Visibility visibility = IToast.Visibility.SHOW;
 
 	public IslandToast(ITextComponent titleComponent, ITextComponent subtitleComponent) {
@@ -17,6 +20,7 @@ public class IslandToast implements IToast {
 		type = Type.Island;
 	}
 
+	@Nonnull
 	public IToast.Visibility draw(GuiToast toastGui, long delta) {
 		toastGui.getMinecraft().getTextureManager().bindTexture(TEXTURE_TOASTS);
 		GlStateManager.color(1.0F, 1.0F, 1.0F);
@@ -37,11 +41,12 @@ public class IslandToast implements IToast {
 
 	}
 
+	@Nonnull
 	public IslandToast.Type getType() {
 		return this.type;
 	}
 
-	public static enum Type {
+	public enum Type {
 		Island;
 	}
 }

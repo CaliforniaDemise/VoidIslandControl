@@ -11,11 +11,12 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiCreateWorld;
 import net.minecraft.client.gui.GuiWorldSelection;
 import net.minecraft.command.CommandException;
-import net.minecraft.entity.passive.EntityCow;
+import net.minecraft.command.ICommandManager;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.Blocks;
 import net.minecraft.tileentity.TileEntityCommandBlock;
+import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraft.util.text.TextFormatting;
@@ -40,8 +41,7 @@ import javax.annotation.Nullable;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Objects;
 import java.util.Random;
 
 @SuppressWarnings("unused")
@@ -57,121 +57,98 @@ public class EventHandler {
             GuiCreateWorld cw = (GuiCreateWorld) e.getGui();
             try {
                 selectedIndex.invoke(cw, getType());
-            } catch (Throwable ex) {
-                throw new RuntimeException(ex);
             }
+            catch (Throwable ex) { throw new RuntimeException(ex); }
         }
     }
 
     private int getType() {
         for (int i = 0; i < WorldType.WORLD_TYPES.length; i++) {
-            if (WorldType.WORLD_TYPES[i] instanceof WorldTypeVoid)
-                return i;
+            if (WorldType.WORLD_TYPES[i] instanceof WorldTypeVoid) return i;
         }
+
         return 0;
     }
+
     @SubscribeEvent
     public void playerLogin(PlayerEvent.PlayerLoggedInEvent event) {
-        if (!event.player.getEntityWorld().isRemote) {
+        World world = event.player.world;
+
+        if (!world.isRemote) {
             EntityPlayer player = event.player;
 
-            if (player.getEntityWorld().getWorldInfo().getTerrainType() instanceof WorldTypeVoid && player.dimension == ConfigOptions.worldGenSettings.baseDimension) {
-                if (IslandManager.spawnedPlayers.size() == 0
-                        || !IslandManager.hasPlayerSpawned(player.getGameProfile().getId())) {
-                    World world = player.getEntityWorld();
+            if (world.getWorldInfo().getTerrainType() instanceof WorldTypeVoid && player.dimension == ConfigOptions.worldGenSettings.baseDimension) {
+                if (IslandManager.spawnedPlayers.isEmpty() || !IslandManager.hasPlayerSpawned(player.getGameProfile().getId())) {
                     BlockPos spawn = new BlockPos(0, ConfigOptions.islandSettings.islandYLevel, 0);
 
-                    if (IslandManager.CurrentIslandsList.size() == 0) {
-                        IslandManager.CurrentIslandsList.add(new IslandPos(0, 0));
+                    if (IslandManager.CurrentIslandsList.isEmpty()) {
+                        IslandManager.CurrentIslandsList.add(new IslandPos(0 , 0));
                         BlockPos pos = spawn.add(IslandManager.getSpawnOffset(IslandManager.CurrentIslandsList.get(0)));
                         world.setSpawnPoint(pos);
-                        createSpawn(player, player.getEntityWorld(), spawn);
+                        createSpawn(player, world, spawn);
                     }
-                    IslandManager.tpPlayerToPos(player, new BlockPos(0, ConfigOptions.islandSettings.islandYLevel, 0), IslandManager.CurrentIslandsList.get(0));
 
-                    boolean autoCreate = ConfigOptions.islandSettings.autoCreate || (player.getServer().isDedicatedServer() && ConfigOptions.islandSettings.autoCreateServersOnly);
+                    IslandManager.tpPlayerToPos(player, spawn, IslandManager.CurrentIslandsList.get(0));
+
+                    boolean autoCreate = ConfigOptions.islandSettings.autoCreate || (Objects.requireNonNull(player.getServer()).isDedicatedServer() && ConfigOptions.islandSettings.autoCreateServersOnly);
 
                     if (autoCreate && !IslandManager.worldOneChunk) {
-
                         if (player instanceof EntityPlayerMP) {
                             try {
                                 PlatformCommand.newPlatform((EntityPlayerMP) player, "create", "bypass");
-                            } catch (CommandException e) {
-                                player.sendMessage(new TextComponentString(e.getMessage()));
                             }
+                            catch (CommandException e) { player.sendMessage(new TextComponentString(e.getMessage())); }
                         }
                     } else {
-
                         if (ConfigOptions.islandSettings.oneChunk) {
-                            WorldBorder border = player.getEntityWorld().getMinecraftServer().worlds[0]
-                                    .getWorldBorder();
-
+                            WorldBorder border = Objects.requireNonNull(world.getMinecraftServer()).worlds[0].getWorldBorder();
                             border.setCenter(0, 0);
                             border.setTransition(16);
                             border.setWarningDistance(1);
-
                             IslandManager.worldOneChunk = true;
                         }
 
                         spawnPlayer(player, spawn, false);
                         player.extinguish();
                     }
+
                     IslandManager.spawnedPlayers.add(player.getGameProfile().getId().toString());
                 }
             }
         }
     }
+
     @SubscribeEvent
     public void playerUpdate(LivingUpdateEvent event) {
-        if (event.getEntityLiving() instanceof EntityPlayer && !event.getEntity().getEntityWorld().isRemote) {
-            EntityPlayer player = (EntityPlayer) event.getEntityLiving();
+        if (!(event.getEntityLiving() instanceof EntityPlayer)) return;
+        EntityPlayer player = (EntityPlayer) event.getEntityLiving();
+        World world = player.world;
 
-            if (player.getEntityWorld().getWorldInfo().getTerrainType() instanceof WorldTypeVoid
-                    && IslandManager.hasVisitLoc(player) && player.dimension == ConfigOptions.worldGenSettings.baseDimension && !player.isCreative()) {
-                if (player instanceof EntityPlayerMP
-                        && ((EntityPlayerMP) player).interactionManager.getGameType() != GameType.SPECTATOR)
+        if (!world.isRemote) {
+            if (world.getWorldInfo().getTerrainType() instanceof WorldTypeVoid && IslandManager.hasVisitLoc(player) && player.dimension == ConfigOptions.worldGenSettings.baseDimension && !player.isCreative()) {
+                if (((EntityPlayerMP) player).interactionManager.getGameType() != GameType.SPECTATOR) {
                     player.setGameType(GameType.SPECTATOR);
-                int posX = IslandManager.getVisitLoc(player).getX() * ConfigOptions.islandSettings.islandDistance;
-                int posY = IslandManager.getVisitLoc(player).getY() * ConfigOptions.islandSettings.islandDistance;
-                if (ConfigOptions.islandSettings.islandProtection && (
-                        Math.abs(player.posX - posX) > ConfigOptions.islandSettings.protectionBuildRange
-                                || Math.abs(player.posZ - posY) > ConfigOptions.islandSettings.protectionBuildRange)) {
-                    if (player.ticksExisted % 60 == 0)
-                        player.sendMessage(
-                                new TextComponentString(TextFormatting.RED + "You can't be visiting that far away!"));
+                }
+
+                IslandPos visitLoc = Objects.requireNonNull(IslandManager.getVisitLoc(player));
+                int posX = visitLoc.getX() * ConfigOptions.islandSettings.islandDistance;
+                int posY = visitLoc.getY() * ConfigOptions.islandSettings.islandDistance;
+
+                if (ConfigOptions.islandSettings.islandProtection && (Math.abs(player.posX - posX) > ConfigOptions.islandSettings.protectionBuildRange || Math.abs(player.posZ - posY) > ConfigOptions.islandSettings.protectionBuildRange)) {
+                    if (player.ticksExisted % 60 == 0) {
+                        player.sendMessage(new TextComponentString(TextFormatting.RED + "You can't be visiting that far away!"));
+                    }
+
                     player.setGameType(GameType.SURVIVAL);
                     IslandManager.removeVisitLoc(player);
-                    IslandManager.tpPlayerToPos(player,
-                            new BlockPos(posX, ConfigOptions.islandSettings.islandYLevel, posY), IslandManager.getVisitLoc(player));
+                    IslandManager.tpPlayerToPos(player, new BlockPos(posX, ConfigOptions.islandSettings.islandYLevel, posY), IslandManager.getVisitLoc(player));
                 }
             }
 
-            if (player.getEntityWorld().getWorldInfo().getTerrainType() instanceof WorldTypeVoid
-                    && player.dimension == ConfigOptions.worldGenSettings.baseDimension && !player.isCreative() && !IslandManager.hasVisitLoc(player)) {
-                if (player.getServer().isDedicatedServer() && (ConfigOptions.islandSettings.islandProtection && (Math.abs(player.posX) > ConfigOptions.islandSettings.protectionBuildRange
-                        || Math.abs(player.posZ) > ConfigOptions.islandSettings.protectionBuildRange))) {
-                    IslandPos pos = IslandManager.getPlayerIsland(player.getGameProfile().getId());
-                    int posX = pos == null ? 0 : (pos.getX() * ConfigOptions.islandSettings.islandDistance);
-                    int posY = pos == null ? 0 : (pos.getY() * ConfigOptions.islandSettings.islandDistance);
-                    if (ConfigOptions.islandSettings.islandProtection && (Math.abs(player.posX - posX) > ConfigOptions.islandSettings.protectionBuildRange
-                            || Math.abs(player.posZ - posY) > ConfigOptions.islandSettings.protectionBuildRange)) {
-                        if (player.ticksExisted % 60 == 0)
-                            player.sendMessage(
-                                    new TextComponentString(TextFormatting.RED + "You can't be away from your island or spawn that far away!"));
-                        player.setGameType(GameType.SURVIVAL);
-                        IslandManager.tpPlayerToPos(player,
-                                new BlockPos(posX, ConfigOptions.islandSettings.islandYLevel, posY), pos);
-                    }
-                }
-            }
-
-            List<IslandPos> removeAt = new ArrayList<>();
             if (IslandManager.hasJoinLoc(player)) {
                 int time = IslandManager.getJoinTime(player);
-                if (time > 0)
-                    IslandManager.setJoinTime(player, time - 1);
-                else
-                    IslandManager.removeJoinLoc(player);
+                if (time > 0) IslandManager.setJoinTime(player, time - 1);
+                else IslandManager.removeJoinLoc(player);
             }
             if (IslandManager.hasLeaveConfirm(player)) {
                 int time = IslandManager.getLeaveTime(player);
@@ -187,23 +164,17 @@ public class EventHandler {
 
     private static void loadWorld(EntityPlayer player) {
         if (!IslandManager.worldLoaded) {
+            ICommandManager manager = Objects.requireNonNull(player.world.getMinecraftServer()).getCommandManager();
             for (String s : ConfigOptions.commandSettings.worldLoadCommands) {
-                if (!StringUtils.isBlank(s))
-                    player.getEntityWorld().getMinecraftServer().getCommandManager()
-                            .executeCommand(new EntityCow(player.getEntityWorld()) {
-                                public boolean canUseCommand(int permLevel, String commandName) {
-                                    return true;
-                                }
-                            }, s);
+                if (!StringUtils.isBlank(s)) manager.executeCommand(player, s);
             }
         }
+
         IslandManager.worldLoaded = true;
     }
 
     public static void spawnPlayer(EntityPlayer player, BlockPos pos, boolean spawnPlat) {
-        if (spawnPlat)
-            createSpawn(player, player.getEntityWorld(), pos);
-
+        if (spawnPlat) createSpawn(player, player.getEntityWorld(), pos);
         if (player instanceof EntityPlayerMP) {
             EntityPlayerMP pmp = (EntityPlayerMP) player;
             IslandManager.tpPlayerToPosSpawn(player, pos, IslandManager.getPlayerIsland(pmp.getUniqueID()));
@@ -217,14 +188,10 @@ public class EventHandler {
 
     public static void createSpawn(EntityPlayer player, World world, BlockPos spawn) {
         if (spawn.getX() == 0 && spawn.getZ() == 0 && !IslandManager.worldOneChunk) {
-            if (ConfigOptions.islandSettings.islandMainSpawnType.equals("bedrock"))
-                mainSpawn(world, spawn);
+            if (ConfigOptions.islandSettings.islandMainSpawnType.equals("bedrock")) mainSpawn(world, spawn);
             else {
                 Random random = world.rand;
-                int type = ConfigOptions.islandSettings.islandMainSpawnType.equals("random")
-                        ? random.nextInt(IslandManager.IslandGenerations.size())
-                        : IslandManager.getIndexOfIslandType(ConfigOptions.islandSettings.islandMainSpawnType);
-
+                int type = ConfigOptions.islandSettings.islandMainSpawnType.equals("random") ? random.nextInt(IslandManager.IslandGenerations.size()) : IslandManager.getIndexOfIslandType(ConfigOptions.islandSettings.islandMainSpawnType);
                 spawnPlat(null, world, spawn, type);
             }
 
@@ -232,43 +199,30 @@ public class EventHandler {
         }
 
         Random random = world.rand;
-        int type = ConfigOptions.islandSettings.islandSpawnType.equals("random")
-                ? random.nextInt(IslandManager.IslandGenerations.size())
-                : IslandManager.getIndexOfIslandType(ConfigOptions.islandSettings.islandSpawnType);
-
+        int type = ConfigOptions.islandSettings.islandSpawnType.equals("random") ? random.nextInt(IslandManager.IslandGenerations.size()) : IslandManager.getIndexOfIslandType(ConfigOptions.islandSettings.islandSpawnType);
         spawnPlat(player, world, spawn, type);
     }
 
     private static void spawnPlat(@Nullable EntityPlayer player, World world, BlockPos spawn, int type) {
         if (player != null) {
-            IslandPos position = IslandManager.getNextIsland();
-            IslandManager.CurrentIslandsList.add(new IslandPos(IslandManager.IslandGenerations.get(type).Identifier,
-                    position.getX(), position.getY(), player.getGameProfile().getId()));
+            IslandPos position = Objects.requireNonNull(IslandManager.getNextIsland());
+            IslandManager.CurrentIslandsList.add(new IslandPos(IslandManager.IslandGenerations.get(type).Identifier, position.getX(), position.getY(), player.getGameProfile().getId()));
         }
 
         IslandManager.IslandGenerations.get(type).generate(world, spawn);
 
         if (ConfigOptions.commandSettings.commandBlockType != CommandBlockType.NONE) {
             Block cmdBlock = null;
-            if (ConfigOptions.commandSettings.commandBlockType == CommandBlockType.IMPULSE)
-                cmdBlock = Blocks.COMMAND_BLOCK;
-            else if (ConfigOptions.commandSettings.commandBlockType == CommandBlockType.CHAIN)
-                cmdBlock = Blocks.CHAIN_COMMAND_BLOCK;
-            else if (ConfigOptions.commandSettings.commandBlockType == CommandBlockType.REPEATING)
-                cmdBlock = Blocks.REPEATING_COMMAND_BLOCK;
+            switch (ConfigOptions.commandSettings.commandBlockType) {
+                case IMPULSE: cmdBlock = Blocks.COMMAND_BLOCK; break;
+                case CHAIN: cmdBlock = Blocks.CHAIN_COMMAND_BLOCK; break;
+                case REPEATING: cmdBlock = Blocks.REPEATING_COMMAND_BLOCK; break;
+            }
 
             if (cmdBlock != null) {
-                world.setBlockState(
-                        spawn.down(3).add(ConfigOptions.commandSettings.commandBlockPos.x,
-                                ConfigOptions.commandSettings.commandBlockPos.y,
-                                ConfigOptions.commandSettings.commandBlockPos.z),
-                        cmdBlock.getDefaultState().withProperty(BlockCommandBlock.FACING,
-                                ConfigOptions.commandSettings.commandBlockDirection),
-                        3);
-                TileEntityCommandBlock te = (TileEntityCommandBlock) world
-                        .getTileEntity(spawn.down(3).add(ConfigOptions.commandSettings.commandBlockPos.x,
-                                ConfigOptions.commandSettings.commandBlockPos.y,
-                                ConfigOptions.commandSettings.commandBlockPos.z));
+                BlockPos down = spawn.add(ConfigOptions.commandSettings.commandBlockPos.x, ConfigOptions.commandSettings.commandBlockPos.y - 3, ConfigOptions.commandSettings.commandBlockPos.z);
+                world.setBlockState(down, cmdBlock.getDefaultState().withProperty(BlockCommandBlock.FACING, ConfigOptions.commandSettings.commandBlockDirection), 3);
+                TileEntityCommandBlock te = (TileEntityCommandBlock) Objects.requireNonNull(world.getTileEntity(down));
                 te.getCommandBlockLogic().setCommand(ConfigOptions.commandSettings.commandBlockCommand);
                 te.setAuto(ConfigOptions.commandSettings.commandBlockAuto);
             }
@@ -276,13 +230,13 @@ public class EventHandler {
     }
 
     private static void mainSpawn(World world, BlockPos spawn) {
-        for (int x = -(int) Math.floor((float) ConfigOptions.islandSettings.islandSize / 2F); x <= (int) Math
-                .floor((float) ConfigOptions.islandSettings.islandSize / 2F); x++) {
-            for (int z = -(int) Math.floor((float) ConfigOptions.islandSettings.islandSize / 2F); z <= (int) Math
-                    .floor((float) ConfigOptions.islandSettings.islandSize / 2F); z++) {
-                BlockPos pos = new BlockPos(spawn.getX() + x, spawn.getY(), spawn.getZ() + z);
-                world.setBlockState(pos.down(3), Blocks.BEDROCK.getDefaultState(), 2);
-                world.setBlockState(pos.down(4), Blocks.BEDROCK.getDefaultState(), 2);
+        int halfSize = (int) Math.floor((float) ConfigOptions.islandSettings.islandSize / 2F);
+        BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
+        for (int x = -halfSize; x <= halfSize; x++) {
+            for (int z = -halfSize; z <= halfSize; z++) {
+                pos.setPos(spawn.getX() + x, spawn.getY(), spawn.getZ() + z);
+                world.setBlockState(pos.move(EnumFacing.DOWN, 3), Blocks.BEDROCK.getDefaultState(), 2);
+                world.setBlockState(pos.move(EnumFacing.DOWN), Blocks.BEDROCK.getDefaultState(), 2);
             }
         }
     }
@@ -290,19 +244,15 @@ public class EventHandler {
     @SubscribeEvent
     public void onPlayerRespawn(PlayerRespawnEvent event) {
         EntityPlayer player = event.player;
+        World world = player.world;
 
-        if (player.getEntityWorld().getWorldInfo().getTerrainType() instanceof WorldTypeVoid) {
-            if (player.getBedLocation() == null
-                    || player.getBedSpawnLocation(player.getEntityWorld(), player.getBedLocation(), true) == null) {
-
+        if (world.getWorldInfo().getTerrainType() instanceof WorldTypeVoid) {
+            BlockPos bedLoc = player.getBedLocation();
+            if (bedLoc == null || EntityPlayer.getBedSpawnLocation(world, bedLoc, true) == null) {
                 IslandPos iPos = IslandManager.getPlayerIsland(player.getGameProfile().getId());
-
-                BlockPos pos = new BlockPos(0, ConfigOptions.islandSettings.islandYLevel, 0);
-                if (iPos != null)
-                    pos = new BlockPos(iPos.getX() * ConfigOptions.islandSettings.islandDistance,
-                            ConfigOptions.islandSettings.islandYLevel,
-                            iPos.getY() * ConfigOptions.islandSettings.islandDistance);
-
+                BlockPos pos;
+                if (iPos != null) pos = new BlockPos(iPos.getX() * ConfigOptions.islandSettings.islandDistance, ConfigOptions.islandSettings.islandYLevel, iPos.getY() * ConfigOptions.islandSettings.islandDistance);
+                else pos = new BlockPos(0, ConfigOptions.islandSettings.islandYLevel, 0);
                 IslandManager.tpPlayerToPos(player, pos, iPos);
             }
         }
@@ -323,13 +273,11 @@ public class EventHandler {
         EntityPlayer player = event.getEntityPlayer();
         World world = player.getEntityWorld();
 
-        if (!ConfigOptions.islandSettings.spawnProtection || Math.abs(player.posX) > ConfigOptions.islandSettings.protectionBuildRange
-                || Math.abs(player.posZ) > ConfigOptions.islandSettings.protectionBuildRange) {
+        if (!ConfigOptions.islandSettings.spawnProtection || Math.abs(player.posX) > ConfigOptions.islandSettings.protectionBuildRange || Math.abs(player.posZ) > ConfigOptions.islandSettings.protectionBuildRange) {
             return event;
-        } else {
-            if (!player.isCreative() && event.isCancelable()) {
-                event.setCanceled(true);
-            }
+        }
+        else {
+            if (!player.isCreative() && event.isCancelable()) event.setCanceled(true);
             return null;
         }
     }
@@ -339,8 +287,7 @@ public class EventHandler {
             Field field = GuiCreateWorld.class.getDeclaredField(FMLLaunchHandler.isDeobfuscatedEnvironment() ? "selectedIndex" : "field_146331_K");
             field.setAccessible(true);
             selectedIndex = MethodHandles.publicLookup().unreflectSetter(field);
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            throw new RuntimeException(e);
         }
+        catch (NoSuchFieldException | IllegalAccessException e) { throw new RuntimeException(e); }
     }
 }

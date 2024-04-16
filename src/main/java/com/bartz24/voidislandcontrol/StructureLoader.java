@@ -20,17 +20,13 @@ public class StructureLoader {
     public static VICTemplateManager tempManager;
 
     public static void preInit(FMLPreInitializationEvent event) {
-
-        File structFolder = new File(event.getModConfigurationDirectory().getAbsolutePath() + File.separator + References.ModID
-                + "structures");
-        if (!structFolder.exists())
-            structFolder.mkdirs();
-        if (tempManager == null)
-            tempManager = new VICTemplateManager(structFolder.getAbsolutePath(), new DataFixer(0));
-
+        File structFolder = new File(event.getModConfigurationDirectory().getAbsolutePath() + File.separator + References.ModID + "structures");
+        if (!structFolder.exists()) structFolder.mkdirs();
+        if (tempManager == null) tempManager = new VICTemplateManager(structFolder.getAbsolutePath(), new DataFixer(0));
     }
 
     public static class VICTemplateManager {
+
         private final Map<String, Template> templates = Maps.<String, Template>newHashMap();
         /**
          * the folder in the assets folder where the structure templates are found.
@@ -62,7 +58,6 @@ public class StructureLoader {
                 return this.templates.get(s);
             } else {
                 this.readTemplate(templatePath);
-
                 return this.templates.containsKey(s) ? (Template) this.templates.get(s) : null;
             }
         }

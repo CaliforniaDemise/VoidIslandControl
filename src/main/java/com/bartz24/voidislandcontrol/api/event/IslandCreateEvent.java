@@ -13,7 +13,9 @@ import java.util.UUID;
  * This event is fired on MinecraftForge#EVENT_BUS
  * The EntityPlayer is the player creating, the IslandPos is the island being created
  */
+@SuppressWarnings("unused")
 public class IslandCreateEvent extends Event {
+
     private final IslandPos islandPosition;
     private final UUID playerUUID;
 

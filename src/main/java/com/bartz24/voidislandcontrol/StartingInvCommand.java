@@ -18,12 +18,15 @@ import net.minecraftforge.common.config.Config;
 import net.minecraftforge.common.config.ConfigManager;
 import net.minecraftforge.fml.common.Loader;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 public class StartingInvCommand extends CommandBase implements ICommand {
+
 	private final List<String> aliases;
 
 	public StartingInvCommand() {
@@ -32,6 +35,7 @@ public class StartingInvCommand extends CommandBase implements ICommand {
 		aliases.add("startingInventory");
 	}
 
+	@Nonnull
 	@Override
 	public List<String> getAliases() {
 		return aliases;
@@ -42,15 +46,15 @@ public class StartingInvCommand extends CommandBase implements ICommand {
 		return 2;
 	}
 
-	public List<String> getTabCompletions(MinecraftServer server, ICommandSender sender, String[] args,
-			@Nullable BlockPos targetPos) {
+	@Nonnull
+	public List<String> getTabCompletions(@Nonnull MinecraftServer server, @Nonnull ICommandSender sender, @Nonnull String[] args, @Nullable BlockPos targetPos) {
 		return Collections.<String> emptyList();
 	}
 
 	@Override
-	public void execute(MinecraftServer server, ICommandSender sender, String[] args) {
-		World world = sender.getEntityWorld();
-		EntityPlayerMP player = (EntityPlayerMP) world.getPlayerEntityByName(sender.getCommandSenderEntity().getName());
+	public void execute(@Nonnull MinecraftServer server, ICommandSender sender, String[] args) {
+		EntityPlayerMP player = (EntityPlayerMP) sender.getCommandSenderEntity();
+		if (player == null) return;
 
 		int inventorySize = player.inventory.getSizeInventory();
 		List<String> list = new ArrayList<>();
@@ -70,18 +74,20 @@ public class StartingInvCommand extends CommandBase implements ICommand {
 		player.sendMessage(new TextComponentString("Starting Inventory config set!"));
 	}
 
+	@Nonnull
 	@Override
 	public String getName() {
 		return aliases.get(0);
 	}
 
+	@Nonnull
 	@Override
-	public String getUsage(ICommandSender sender) {
+	public String getUsage(@Nonnull ICommandSender sender) {
 		return "";
 	}
 
 	private static String asString(int slot, ItemStack stack) {
-		String name = Item.REGISTRY.getNameForObject(stack.getItem()).toString();
+		String name = Objects.requireNonNull(stack.getItem().getRegistryName()).toString();
 		int count = stack.getCount();
 		int meta = stack.getMetadata();
 
@@ -92,7 +98,7 @@ public class StartingInvCommand extends CommandBase implements ICommand {
 		builder.append(":").append(meta);
 		builder.append("*").append(count);
 
-		if (nbt != null) builder.append("#").append(nbt.toString());
+		if (nbt != null) builder.append("#").append(nbt);
 
 		return builder.toString();
 	}

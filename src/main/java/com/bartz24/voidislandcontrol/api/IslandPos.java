@@ -1,5 +1,6 @@
 package com.bartz24.voidislandcontrol.api;
 
+import com.google.common.collect.Lists;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraftforge.common.util.Constants;
@@ -10,42 +11,31 @@ import java.util.List;
 import java.util.UUID;
 
 public class IslandPos {
+
     private int posX;
     private int posY;
     private String type;
 
-    private ArrayList<String> playerUUIDs;
+    private ArrayList<UUID> playerUUIDs;
 
     public IslandPos(int x, int y, UUID... ids) {
         posX = x;
         posY = y;
-        if (playerUUIDs == null)
-            playerUUIDs = new ArrayList<String>();
-        for (UUID id : ids) {
-            playerUUIDs.add(id.toString());
-        }
-
+        playerUUIDs = Lists.newArrayList(ids);
     }
 
     public IslandPos(String type, int x, int y, UUID... ids) {
+        this(x, y, ids);
         this.type = type;
-        posX = x;
-        posY = y;
-        if (playerUUIDs == null)
-            playerUUIDs = new ArrayList<String>();
-        for (UUID id : ids) {
-            playerUUIDs.add(id.toString());
-        }
-
     }
 
     public void addNewPlayer(UUID playerUUID) {
-        if (!playerUUIDs.contains(playerUUID.toString()))
-            playerUUIDs.add(playerUUID.toString());
+        if (!playerUUIDs.contains(playerUUID))
+            playerUUIDs.add(playerUUID);
     }
 
     public void removePlayer(UUID playerUUID) {
-        playerUUIDs.remove(playerUUID.toString());
+        playerUUIDs.remove(playerUUID);
     }
 
     public int getX() {
@@ -60,7 +50,7 @@ public class IslandPos {
         return type;
     }
 
-    public List<String> getPlayerUUIDs() {
+    public List<UUID> getPlayerUUIDs() {
         return playerUUIDs;
     }
 
@@ -71,13 +61,13 @@ public class IslandPos {
             nbt.setString("type", type);
 
         NBTTagList list = new NBTTagList();
-        for (int i = 0; i < playerUUIDs.size(); i++) {
+
+        for (UUID playerUUID : playerUUIDs) {
             NBTTagCompound stackTag = new NBTTagCompound();
-
-            stackTag.setString("playerUUID", playerUUIDs.get(i));
-
+            stackTag.setUniqueId("playerUUID", playerUUID);
             list.appendTag(stackTag);
         }
+
         nbt.setTag("UUIDs", list);
     }
 
@@ -86,14 +76,21 @@ public class IslandPos {
         posY = nbt.getInteger("posY");
         type = nbt.getString("type");
 
-        playerUUIDs = new ArrayList<String>();
-
         NBTTagList list = nbt.getTagList("UUIDs", Constants.NBT.TAG_COMPOUND);
+        playerUUIDs = new ArrayList<>(list.tagCount());
+
+        String playerUUID = "playerUUID";
+
         for (int i = 0; i < list.tagCount(); ++i) {
             NBTTagCompound stackTag = list.getCompoundTagAt(i);
+            UUID uuid;
 
-            String name = stackTag.getString("playerUUID");
-            playerUUIDs.add(name);
+            if (stackTag.hasKey(playerUUID, Constants.NBT.TAG_STRING)) {
+                uuid = UUID.fromString(stackTag.getString(playerUUID));
+            }
+            else uuid = stackTag.getUniqueId(playerUUID);
+
+            playerUUIDs.add(uuid);
         }
     }
 }

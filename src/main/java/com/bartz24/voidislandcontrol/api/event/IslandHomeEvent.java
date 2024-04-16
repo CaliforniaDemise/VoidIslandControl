@@ -13,7 +13,9 @@ import java.util.UUID;
  * This event is fired on MinecraftForge#EVENT_BUS
  * The EntityPlayer is the player returning home, the IslandPos is the island being returned to
  */
+@SuppressWarnings("unused")
 public class IslandHomeEvent extends Event {
+
     private final IslandPos islandPosition;
     private final UUID playerUUID;
 
