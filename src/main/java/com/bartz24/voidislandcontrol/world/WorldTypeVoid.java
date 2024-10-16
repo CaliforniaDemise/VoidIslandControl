@@ -40,11 +40,6 @@ public class WorldTypeVoid extends WorldType {
     }
 
     @Override
-    public float getCloudHeight() {
-        return ConfigOptions.worldGenSettings.cloudLevel;
-    }
-
-    @Override
     public double getHorizon(@Nonnull World world) {
         return ConfigOptions.worldGenSettings.horizonLevel;
     }

@@ -15,4 +15,9 @@ public class WorldProviderNetherVoid extends WorldProviderHell {
             return new ChunkGeneratorNetherVoid(world, world.getSeed());
         return super.createChunkGenerator();
     }
+
+    @Override
+    public float getCloudHeight() {
+        return ConfigOptions.worldGenSettings.cloudLevel;
+    }
 }
