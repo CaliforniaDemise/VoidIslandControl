@@ -107,7 +107,7 @@ public class IslandManager {
 
     public static boolean playerHasIsland(UUID playerUUID) {
         for (IslandPos pos : CurrentIslandsList) {
-            if (pos.getPlayerUUIDs().contains(playerUUID.toString()))
+            if (pos.getPlayerUUIDs().contains(playerUUID))
                 return true;
         }
 

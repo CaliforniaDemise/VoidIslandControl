@@ -120,6 +120,10 @@ public class PlatformCommand extends CommandBase implements ICommand {
                 joinPlatform(player, args, world);
             } else if (subCommand.equals("leave")) {
                 IslandPos pos = IslandManager.getPlayerIsland(player.getGameProfile().getId());
+                if (pos == null) {
+                    player.sendMessage(new TextComponentString("Not in an island!"));
+                    return;
+                }
                 leavePlatform(player, args);
                 MinecraftForge.EVENT_BUS.post(new IslandLeaveEvent(player, pos));
             } else if (subCommand.equals("home")) {
