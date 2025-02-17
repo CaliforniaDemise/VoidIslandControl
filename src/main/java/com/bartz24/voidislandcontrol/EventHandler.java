@@ -25,6 +25,7 @@ import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.GameType;
 import net.minecraft.world.World;
 import net.minecraft.world.border.WorldBorder;
+import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.gen.structure.template.PlacementSettings;
 import net.minecraft.world.gen.structure.template.Template;
 import net.minecraftforge.client.event.GuiOpenEvent;
@@ -207,7 +208,6 @@ public class EventHandler {
         }
 
         IslandManager.IslandGenerations.get(type).generate(world, spawn);
-
         if (ConfigOptions.commandSettings.commandBlockType != CommandBlockType.NONE) {
             Block cmdBlock = null;
             switch (ConfigOptions.commandSettings.commandBlockType) {

@@ -70,14 +70,15 @@ public class WorldTypeVoid extends WorldType {
     @Override
     public IChunkGenerator getChunkGenerator(World world, String generatorOptions) {
         if (overridenWorldType != null) return overridenWorldType.getChunkGenerator(world, generatorOptions);
-        if (ConfigOptions.worldGenSettings.worldGenType != WorldGenType.OVERWORLD && ConfigOptions.worldGenSettings.worldGenType != WorldGenType.CUSTOMIZED) {
+        if (ConfigOptions.worldGenSettings.worldGenType == WorldGenType.VOID) return new ChunkGeneratorOverworldVoid(world, world.getSeed(), false, generatorOptions);
+        else if (ConfigOptions.worldGenSettings.worldGenType != WorldGenType.OVERWORLD && ConfigOptions.worldGenSettings.worldGenType != WorldGenType.CUSTOMIZED) {
             String genSettings = "3;1*minecraft:air";
             if (ConfigOptions.worldGenSettings.worldGenType == WorldGenType.SUPERFLAT) genSettings = ConfigOptions.worldGenSettings.worldGenSpecialParameters;
             ChunkGeneratorFlat provider = new ChunkGeneratorFlat(world, world.getSeed(), false, genSettings);
             world.setSeaLevel(63);
             return provider;
         }
-        else return new ChunkGeneratorOverworld(world, world.getSeed(), true, generatorOptions);
+        else return new ChunkGeneratorOverworld(world, world.getSeed(), false, generatorOptions);
     }
 
     public boolean handleSlimeSpawnReduction(java.util.Random random, World world) {
