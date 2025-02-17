@@ -13,6 +13,7 @@ import org.apache.commons.io.IOUtils;
 
 import javax.annotation.Nullable;
 import java.io.*;
+import java.nio.file.Files;
 import java.util.Map;
 
 public class StructureLoader {
@@ -53,13 +54,10 @@ public class StructureLoader {
         @Nullable
         public Template get(@Nullable MinecraftServer server, ResourceLocation templatePath) {
             String s = templatePath.getPath();
-
-            if (this.templates.containsKey(s)) {
-                return this.templates.get(s);
-            } else {
-                this.readTemplate(templatePath);
-                return this.templates.containsKey(s) ? (Template) this.templates.get(s) : null;
-            }
+            Template template = this.templates.get(s);
+            if (template == null) this.readTemplate(templatePath);
+            else return template;
+            return this.templates.get(s);
         }
 
         /**
@@ -78,7 +76,7 @@ public class StructureLoader {
                 boolean flag;
 
                 try {
-                    inputstream = new FileInputStream(file1);
+                    inputstream = Files.newInputStream(file1.toPath());
                     this.readTemplateFromStream(s, inputstream);
                     return true;
                 } catch (Throwable var10) {

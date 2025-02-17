@@ -18,12 +18,15 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.Blocks;
 import net.minecraft.tileentity.TileEntityCommandBlock;
 import net.minecraft.util.EnumFacing;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.GameType;
 import net.minecraft.world.World;
 import net.minecraft.world.border.WorldBorder;
+import net.minecraft.world.gen.structure.template.PlacementSettings;
+import net.minecraft.world.gen.structure.template.Template;
 import net.minecraftforge.client.event.GuiOpenEvent;
 import net.minecraftforge.event.entity.living.LivingEvent.LivingUpdateEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
@@ -41,6 +44,7 @@ import javax.annotation.Nullable;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Field;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
 
@@ -181,7 +185,7 @@ public class EventHandler {
 
     public static void createSpawn(EntityPlayer player, World world, BlockPos spawn) {
         if (spawn.getX() == 0 && spawn.getZ() == 0 && !IslandManager.worldOneChunk) {
-            if (ConfigOptions.islandSettings.islandMainSpawnType.equals("bedrock")) mainSpawn(world, spawn);
+            if (ConfigOptions.islandSettings.islandMainSpawnType.equals("bedrock")) mainSpawn(player, world, spawn);
             else {
                 Random random = world.rand;
                 int type = ConfigOptions.islandSettings.islandMainSpawnType.equals("random") ? random.nextInt(IslandManager.IslandGenerations.size()) : IslandManager.getIndexOfIslandType(ConfigOptions.islandSettings.islandMainSpawnType);
@@ -222,14 +226,28 @@ public class EventHandler {
         }
     }
 
-    private static void mainSpawn(World world, BlockPos spawn) {
-        int halfSize = (int) Math.floor((float) ConfigOptions.islandSettings.islandSize / 2F);
-        BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
-        for (int x = -halfSize; x <= halfSize; x++) {
-            for (int z = -halfSize; z <= halfSize; z++) {
-                pos.setPos(spawn.getX() + x, spawn.getY(), spawn.getZ() + z);
-                world.setBlockState(pos.move(EnumFacing.DOWN, 3), Blocks.BEDROCK.getDefaultState(), 2);
-                world.setBlockState(pos.move(EnumFacing.DOWN), Blocks.BEDROCK.getDefaultState(), 2);
+    private static void mainSpawn(EntityPlayer player, World world, BlockPos spawn) {
+        Template template = StructureLoader.tempManager.get(world.getMinecraftServer(), new ResourceLocation("bedrock"));
+        if (template != null) {
+            BlockPos genPos = new BlockPos(spawn.getX() - template.getSize().getX() / 2, spawn.getY(), spawn.getZ() - template.getSize().getZ() / 2);
+            PlacementSettings settings = new PlacementSettings().setIgnoreStructureBlock(false);
+            template.addBlocksToWorld(world, genPos, settings, 3);
+            Map<BlockPos, String> dataBlocks = template.getDataBlocks(genPos, settings);
+            for (BlockPos dataPos : dataBlocks.keySet()) {
+                if (dataBlocks.get(dataPos).equals("spawn_point")) {
+                    world.setBlockToAir(dataPos);
+                }
+            }
+        }
+        else {
+            int halfSize = (int) Math.floor((float) ConfigOptions.islandSettings.islandSize / 2F);
+            BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
+            for (int x = -halfSize; x <= halfSize; x++) {
+                for (int z = -halfSize; z <= halfSize; z++) {
+                    pos.setPos(spawn.getX() + x, spawn.getY(), spawn.getZ() + z);
+                    world.setBlockState(pos.move(EnumFacing.DOWN, 3), Blocks.BEDROCK.getDefaultState(), 2);
+                    world.setBlockState(pos.move(EnumFacing.DOWN), Blocks.BEDROCK.getDefaultState(), 2);
+                }
             }
         }
     }
@@ -238,7 +256,6 @@ public class EventHandler {
     public void onPlayerRespawn(PlayerRespawnEvent event) {
         EntityPlayer player = event.player;
         World world = player.world;
-
         if (world.getWorldInfo().getTerrainType() instanceof WorldTypeVoid) {
             BlockPos bedLoc = player.getBedLocation();
             if (bedLoc == null || EntityPlayer.getBedSpawnLocation(world, bedLoc, true) == null) {
@@ -262,17 +279,12 @@ public class EventHandler {
     }
 
     @SubscribeEvent
-    public static PlayerInteractEvent spawnProtection(PlayerInteractEvent event) {
+    public static void spawnProtection(PlayerInteractEvent event) {
         EntityPlayer player = event.getEntityPlayer();
         World world = player.getEntityWorld();
-
-        if (!(world.getWorldType() instanceof WorldTypeVoid) || !ConfigOptions.islandSettings.spawnProtection || Math.abs(player.posX) > ConfigOptions.islandSettings.protectionBuildRange || Math.abs(player.posZ) > ConfigOptions.islandSettings.protectionBuildRange) {
-            return event;
-        }
-        else {
-            if (!player.isCreative() && event.isCancelable()) event.setCanceled(true);
-            return null;
-        }
+        if (!(world.getWorldType() instanceof WorldTypeVoid) || !ConfigOptions.islandSettings.spawnProtection || Math.abs(player.posX) > ConfigOptions.islandSettings.protectionBuildRange || Math.abs(player.posZ) > ConfigOptions.islandSettings.protectionBuildRange)
+            return;
+        if (!player.isCreative() && event.isCancelable()) event.setCanceled(true);
     }
 
     static {
