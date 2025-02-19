@@ -5,6 +5,7 @@ import net.minecraft.world.biome.Biome;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.ChunkPrimer;
 import net.minecraft.world.gen.ChunkGeneratorOverworld;
+import net.minecraftforge.fml.relauncher.FMLLaunchHandler;
 
 import javax.annotation.Nonnull;
 import java.lang.reflect.Field;
@@ -47,7 +48,7 @@ public class ChunkGeneratorOverworldVoid extends ChunkGeneratorOverworld {
 
     static {
         try {
-            f_biomesForGeneration = ChunkGeneratorOverworld.class.getDeclaredField("biomesForGeneration");
+            f_biomesForGeneration = ChunkGeneratorOverworld.class.getDeclaredField(FMLLaunchHandler.isDeobfuscatedEnvironment() ? "biomesForGeneration" : "field_185981_C");
             f_biomesForGeneration.setAccessible(true);
         }
         catch (NoSuchFieldException e) {
